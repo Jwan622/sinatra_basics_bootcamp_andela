@@ -3,7 +3,7 @@
 <blockquote><p><%= @item.content %></p></blockquote>
 
 <form action="/delete/<%= @item.id %>" method="POST">
-<input name="_method" type="hidden" value="delete" />
+  <input name="_method" type="hidden" value="delete" />
   <button type="submit" class="btn btn-primary" name="ok">OK</button>
   <button type="submit" class="btn" name="cancel">Cancel</button>
 </form>

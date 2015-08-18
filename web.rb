@@ -28,7 +28,6 @@ get '/new' do
 end
 
 post '/new' do
-  require 'pry' ; binding.pry
   Item.create(:content => params[:content], :created => Time.now)
   redirect '/'
 end
