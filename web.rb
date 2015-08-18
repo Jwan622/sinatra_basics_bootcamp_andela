@@ -3,6 +3,9 @@ require 'data_mapper'
 
 DataMapper::setup(:default, "sqlite3://#{Dir.pwd}/todo_list.db")
 
+#this explains what the Dir.pwd is doing in the DataMapper setup.
+puts "#{Dir.pwd}"
+
 class Item
   include DataMapper::Resource
   property :id, Serial
@@ -25,6 +28,7 @@ get '/new' do
 end
 
 post '/new' do
+  require 'pry' ; binding.pry
   Item.create(:content => params[:content], :created => Time.now)
   redirect '/'
 end
