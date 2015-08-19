@@ -1,10 +1,8 @@
 require 'sinatra'
 require 'data_mapper'
+require 'bcrypt'
 
 DataMapper::setup(:default, "sqlite3://#{Dir.pwd}/todo_list.db")
-
-#this explains what the Dir.pwd is doing in the DataMapper setup.
-puts "#{Dir.pwd}"
 
 class Item
   include DataMapper::Resource
@@ -14,7 +12,33 @@ class Item
   property :created, DateTime
 end
 
+class User
+  include DataMapper::Resource
+  property :id, Serial
+  property :username, Text, :required => true
+  property :password, Text, :required => true
+  property :salt, Text, :required => true
+  property :created_at, DateTime
+end
+
 DataMapper.finalize.auto_upgrade!
+
+enable :sessions
+set :session_secret, '*&(^B234'
+
+helpers do
+  def login?
+    if session[:username].nil?
+      return false
+    else
+      return true
+    end
+  end
+
+  def username
+    return session[:username]
+  end
+end
 
 get '/' do
   @items = Item.all(:order => :created.desc)
@@ -54,4 +78,30 @@ delete '/delete/:id' do
   else
     redirect '/'
   end
+end
+
+get "/signup" do
+  erb :signup
+end
+
+post "/signup" do
+  password_salt = BCrypt::Engine.generate_salt
+  password_hash = BCrypt::Engine.hash_secret(params[:password], password_salt)
+  User.create(:username => params[:username], :password => password_hash, :salt => password_salt)
+  session[:username] = params[:username]
+  redirect "/"
+end
+
+post "/login" do
+  user = User.first(:username => params[:username])
+  if user && user[:password] == BCrypt::Engine.hash_secret(params[:password], user[:salt])
+    session[:username] = params[:username]
+    redirect "/"
+  end
+  erb :error
+end
+
+get "/logout" do
+  session[:username] = nil
+  redirect "/"
 end
