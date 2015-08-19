@@ -4,9 +4,6 @@ require 'bcrypt'
 
 DataMapper::setup(:default, "sqlite3://#{Dir.pwd}/todo_list.db")
 
-#this explains what the Dir.pwd is doing in the DataMapper setup.
-puts "#{Dir.pwd}"
-
 class Item
   include DataMapper::Resource
   property :id, Serial
@@ -18,15 +15,16 @@ end
 class User
   include DataMapper::Resource
   property :id, Serial
-  property :username, Text, :require => true
-  property :password, Text, :require => true
+  property :username, Text, :required => true
+  property :password, Text, :required => true
+  property :salt, Text, :required => true
   property :created_at, DateTime
 end
 
 DataMapper.finalize.auto_upgrade!
 
 enable :sessions
-userTable = {}
+set :session_secret, '*&(^B234'
 
 helpers do
   def login?
@@ -41,7 +39,6 @@ helpers do
     return session[:username]
   end
 end
-
 
 get '/' do
   @items = Item.all(:order => :created.desc)
@@ -90,19 +87,18 @@ end
 post "/signup" do
   password_salt = BCrypt::Engine.generate_salt
   password_hash = BCrypt::Engine.hash_secret(params[:password], password_salt)
-
   User.create(:username => params[:username], :password => password_hash, :salt => password_salt)
   session[:username] = params[:username]
   redirect "/"
 end
 
 post "/login" do
-  user = User.find(:username => params[:username])
+  user = User.first(:username => params[:username])
   if user && user[:password] == BCrypt::Engine.hash_secret(params[:password], user[:salt])
     session[:username] = params[:username]
     redirect "/"
   end
-  haml :error
+  erb :error
 end
 
 get "/logout" do

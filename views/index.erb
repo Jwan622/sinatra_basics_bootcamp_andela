@@ -1,17 +1,43 @@
-<ul id="todo-list" class="unstyled">
-  <% @items.each do |item| %>
-    <li id="<%= item[:id] %>">
-    <span class="item">
-      <%= item[:done] ? "<del>#{item[:content]}</del>" : item[:content] %>
-    </span>
+<% if login? %>
+  <h1> Welcome <%= username %> </h1>
+  <a href="/logout" class="btn btn-danger"> Logout </a>
 
-    <span class="pull-right">
-      <a href="#" class="btn done"><%= item[:done] ? "Not done" : "Done"%></a>
-      <a href="/delete/<%= item[:id] %>" class="btn btn-danger">Delete</a>
-    </span>
+  <ul id="todo-list" class="unstyled">
+    <% @items.each do |item| %>
+      <li id="<%= item[:id] %>">
+      <span class="item">
+        <%= item[:done] ? "<del>#{item[:content]}</del>" : item[:content] %>
+      </span>
 
-    </li>
-  <% end %>
-</ul>
+      <span class="pull-right">
+        <a href="#" class="btn done"><%= item[:done] ? "Not done" : "Done"%></a>
+        <a href="/delete/<%= item[:id] %>" class="btn btn-danger">Delete</a>
+      </span>
 
-<a href="/new" class="btn btn-primary">Add todo item</a>
+      </li>
+    <% end %>
+  </ul>
+
+  <a href="/new" class="btn btn-primary">Add todo item</a>
+
+<% else %>
+<p class="login-message"> You need to login to see your todolist!</p>
+  <form class="login" action="/login" method="post">
+    <div>
+      <label for="username">Username:</label>
+      <input id="username" type="text" name="username">
+    </div>
+    <div>
+      <label for="password">Password:</label>
+      <input id="password" type="text" name="password">
+    </div>
+    <div>
+      <input type="submit" value="Login">
+      <input type="reset" value="Clear">
+    </div>
+  </form>
+
+  <p>
+    <a href="/signup">Signup</a>
+  </p>
+<% end %>
