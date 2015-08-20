@@ -1,6 +1,15 @@
 require 'sinatra'
 require 'data_mapper'
 require 'bcrypt'
+require 'sinatra/flash'
+require 'sinatra/partial'
+require 'json'
+
+set :partial_template_engine, :erb
+enable :partial_underscores
+
+enable :sessions
+set :session_secret, '*&(^B234'
 
 DataMapper::setup(:default, "sqlite3://#{Dir.pwd}/todo_list.db")
 
@@ -10,6 +19,7 @@ class Item
   property :content, Text, :required => true
   property :done, Boolean, :required => true, :default => false
   property :created, DateTime
+  belongs_to :user
 end
 
 class User
@@ -19,12 +29,10 @@ class User
   property :password, Text, :required => true
   property :salt, Text, :required => true
   property :created_at, DateTime
+  has n, :items
 end
 
 DataMapper.finalize.auto_upgrade!
-
-enable :sessions
-set :session_secret, '*&(^B234'
 
 helpers do
   def login?
@@ -41,23 +49,40 @@ helpers do
 end
 
 get '/' do
-  @items = Item.all(:order => :created.desc)
-  redirect '/new' if @items.empty?
-  erb :index
+  user = User.first(:username => username)
+  if user
+    @items = User.first(:username => username).items
+    erb :index
+  else
+    @items = []
+    erb :index
+  end
 end
 
 get '/new' do
-  @title = "Add todo item"
-  erb :new
+  if !username
+    flash[:error] = "You need to login first. Nice try hacker."
+    redirect "/"
+  else
+    @title = "Add todo item"
+    erb :new
+  end
 end
 
 post '/new' do
-  Item.create(:content => params[:content], :created => Time.now)
-  redirect '/'
+  if !username
+    flash[:error] = "You need to login first. Nice try hacker."
+    redirect "/"
+  else
+    user = User.first(:username => username)
+    user.items << Item.create(:content => params[:content], :created => Time.now)
+    user.items.save
+    redirect '/'
+  end
 end
 
 post '/done' do
-  item = Item.first(:id => params[:id])
+  item = Item.first(:id => params[:id].to_i)
   item.done = !item.done
   item.save
   content_type 'application/json'
