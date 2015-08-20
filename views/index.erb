@@ -1,6 +1,8 @@
 <% if login? %>
-  <h1> Welcome <%= username %> </h1>
-  <a href="/logout" class="btn btn-danger"> Logout </a>
+  <div class="greeting">
+    <h1> Welcome <%= username %> </h1>
+    <a href="/logout" class="btn btn-danger"> Logout </a>
+  </div>
 
   <ul id="todo-list" class="unstyled">
     <% @items.each do |item| %>
@@ -21,6 +23,7 @@
   <a href="/new" class="btn btn-primary">Add todo item</a>
 
 <% else %>
+
 <p class="login-message"> You need to login to see your todolist!</p>
   <form class="login" action="/login" method="post">
     <div>
@@ -29,15 +32,15 @@
     </div>
     <div>
       <label for="password">Password:</label>
-      <input id="password" type="text" name="password">
+      <input id="password" type="password" name="password">
     </div>
     <div>
-      <input type="submit" value="Login">
-      <input type="reset" value="Clear">
+      <input type="submit" value="Login" class="btn btn-default">
+      <input type="reset" value="Clear" class="btn btn-default">
     </div>
   </form>
 
   <p>
-    <a href="/signup">Signup</a>
+    <a href="/signup" class="btn btn-info">Signup</a>
   </p>
 <% end %>
